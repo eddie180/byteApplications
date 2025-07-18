@@ -7,17 +7,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('message-box');
     const logoutButton = document.getElementById('logout-button-admin');
 
+    // Main panel titles/descriptions
+    const mainAdminTitle = document.getElementById('main-admin-title'); // NEW
+    const sectionTitle = document.getElementById('section-title');     // NEW
+    const sectionDescription = document.getElementById('section-description'); // NEW
+
     // Search elements
     const applicationSearchInput = document.getElementById('application-search-input');
     const searchButton = document.getElementById('search-button');
 
     // Tab buttons and sections
     const showApplicationsBtn = document.getElementById('show-applications-btn');
-    const showModeratorsBtn = document.getElementById('show-moderators-btn'); // NEW
+    const showModeratorsBtn = document.getElementById('show-moderators-btn');
     const showAdminsBtn = document.getElementById('show-admins-btn');
     const showBlacklistBtn = document.getElementById('show-blacklist-btn');
     const applicationsSection = document.getElementById('applications-section');
-    const moderatorsSection = document.getElementById('moderators-section'); // NEW
+    const moderatorsSection = document.getElementById('moderators-section');
     const adminsSection = document.getElementById('admins-section');
     const blacklistSection = document.getElementById('blacklist-section');
 
@@ -27,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addAdminBtn = document.getElementById('add-admin-btn');
     const adminsList = document.getElementById('admins-list');
 
-    // Moderator management elements (NEW)
+    // Moderator management elements
     const addModeratorIdInput = document.getElementById('add-moderator-id');
     const addModeratorUsernameInput = document.getElementById('add-moderator-username');
     const addModeratorBtn = document.getElementById('add-moderator-btn');
@@ -84,26 +89,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (data.success && data.user) {
                 currentUserIsAdmin = data.user.isAdmin;
-                currentUserIsModerator = data.user.isModerator; // Get moderator status
+                currentUserIsModerator = data.user.isModerator;
 
-                // If neither admin nor moderator, redirect
-                if (!currentUserIsAdmin && !currentUserIsModerator) {
+                // Set main title based on role
+                if (currentUserIsAdmin) {
+                    mainAdminTitle.textContent = 'Admin Hub';
+                } else if (currentUserIsModerator) {
+                    mainAdminTitle.textContent = 'Moderator Hub';
+                } else {
                     showMessage('Access denied. You are not authorized to view this page.', 'error');
                     setTimeout(() => { window.location.href = '/apply.html'; }, 2000);
                     return false;
                 }
+
                 // Hide admin-only tabs for moderators
                 if (!currentUserIsAdmin) {
                     showAdminsBtn.style.display = 'none';
                     showBlacklistBtn.style.display = 'none';
-                    // If a moderator somehow lands on an admin-only tab, redirect to applications
-                    if (adminsSection.classList.contains('hidden') === false || blacklistSection.classList.contains('hidden') === false) {
-                        showSection('applications');
-                    }
+                    showModeratorsBtn.style.display = 'none'; // Moderators cannot manage other moderators
                 } else {
                     // Ensure admin-only tabs are visible for admins
                     showAdminsBtn.style.display = 'inline-block';
                     showBlacklistBtn.style.display = 'inline-block';
+                    showModeratorsBtn.style.display = 'inline-block';
                 }
                 return true;
             } else {
@@ -123,19 +131,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function showSection(sectionId) {
         // Hide all sections
         applicationsSection.classList.add('hidden');
-        moderatorsSection.classList.add('hidden'); // NEW
+        moderatorsSection.classList.add('hidden');
         adminsSection.classList.add('hidden');
         blacklistSection.classList.add('hidden');
 
         // Deactivate all buttons
         showApplicationsBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
         showApplicationsBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
-        showModeratorsBtn.classList.remove('bg-green-700', 'hover:bg-green-600'); // NEW
-        showModeratorsBtn.classList.add('bg-gray-700', 'hover:bg-gray-600'); // NEW
+        showModeratorsBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
+        showModeratorsBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
         showAdminsBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
         showAdminsBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
         showBlacklistBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
         showBlacklistBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+
+        // Set section titles and descriptions
+        let titleText = '';
+        let descriptionText = '';
 
         // Show target section and activate its button
         switch (sectionId) {
@@ -143,42 +155,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 applicationsSection.classList.remove('hidden');
                 showApplicationsBtn.classList.add('bg-green-700', 'hover:bg-green-600');
                 showApplicationsBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                titleText = 'Pending Applications';
+                descriptionText = 'Review applications that are awaiting a decision.';
                 fetchApplications(); // Refresh applications when showing this tab
                 break;
-            case 'moderators': // NEW
-                if (!currentUserIsAdmin) { // Only admins can see this tab
+            case 'moderators':
+                if (!currentUserIsAdmin) {
                     showMessage('Access denied. Only administrators can manage moderators.', 'error');
-                    showSection('applications'); // Redirect to applications if unauthorized
+                    showSection('applications');
                     return;
                 }
                 moderatorsSection.classList.remove('hidden');
                 showModeratorsBtn.classList.add('bg-green-700', 'hover:bg-green-600');
                 showModeratorsBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                fetchModerators(); // Refresh moderators when showing this tab
+                titleText = 'Manage Moderators';
+                descriptionText = 'Add or remove users with moderator (view-only) permissions.';
+                fetchModerators();
                 break;
             case 'admins':
-                if (!currentUserIsAdmin) { // Only admins can see this tab
+                if (!currentUserIsAdmin) {
                     showMessage('Access denied. Only administrators can manage admins.', 'error');
-                    showSection('applications'); // Redirect to applications if unauthorized
+                    showSection('applications');
                     return;
                 }
                 adminsSection.classList.remove('hidden');
                 showAdminsBtn.classList.add('bg-green-700', 'hover:bg-green-600');
                 showAdminsBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                fetchAdmins(); // Refresh admins when showing this tab
+                titleText = 'Manage Administrators';
+                descriptionText = 'Add or remove users with full administrative control.';
+                fetchAdmins();
                 break;
             case 'blacklist':
-                if (!currentUserIsAdmin) { // Only admins can see this tab
+                if (!currentUserIsAdmin) {
                     showMessage('Access denied. Only administrators can manage the blacklist.', 'error');
-                    showSection('applications'); // Redirect to applications if unauthorized
+                    showSection('applications');
                     return;
                 }
                 blacklistSection.classList.remove('hidden');
                 showBlacklistBtn.classList.add('bg-green-700', 'hover:bg-green-600');
                 showBlacklistBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                fetchBlacklistedUsers(); // Refresh blacklist when showing this tab
+                titleText = 'Manage Blacklist';
+                descriptionText = 'Add or remove users from the application submission blacklist.';
+                fetchBlacklistedUsers();
                 break;
         }
+        sectionTitle.textContent = titleText;
+        sectionDescription.textContent = descriptionText;
     }
 
     // --- Application List Functions ---
@@ -543,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Moderator Management Functions (NEW) ---
+    // --- Moderator Management Functions ---
     async function fetchModerators() {
         moderatorsList.innerHTML = '<p class="text-gray-400 text-center">Loading moderators...</p>';
         try {
@@ -766,14 +788,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tab button event listeners
     showApplicationsBtn.addEventListener('click', () => showSection('applications'));
-    showModeratorsBtn.addEventListener('click', () => showSection('moderators')); // NEW
+    showModeratorsBtn.addEventListener('click', () => showSection('moderators'));
     showAdminsBtn.addEventListener('click', () => showSection('admins'));
     showBlacklistBtn.addEventListener('click', () => showSection('blacklist'));
 
     // Admin management button listeners
     addAdminBtn.addEventListener('click', addAdmin);
 
-    // Moderator management button listeners (NEW)
+    // Moderator management button listeners
     addModeratorBtn.addEventListener('click', addModerator);
 
     // Blacklist management button listeners
