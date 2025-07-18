@@ -1,3 +1,6 @@
+/* public/style.css */
+
+/* Import Inter font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
 body {
@@ -5,32 +8,37 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* Background gradient handled by Tailwind classes in HTML body */
 }
 
-
+/* Custom styles for the container to ensure responsiveness and good looks */
 .container {
-    max-width: 90%;
-    margin: 20px auto; 
-    padding: 2rem; 
-    position: relative; 
-    animation: fadeIn 0.8s ease-out; 
+    max-width: 90%; /* Adjust max-width for smaller screens */
+    margin: 20px auto; /* Center container with auto margins */
+    padding: 2rem; /* Default padding */
+    position: relative; /* For absolute positioning of admin link */
+    animation: fadeIn 0.8s ease-out; /* Add a subtle fade-in animation */
 }
 
+/* Responsive adjustments for larger screens */
 @media (min-width: 768px) {
     .container {
-        max-width: 600px; 
-        padding: 3rem;
+        max-width: 600px; /* Max width for medium screens for apply.html */
+        padding: 3rem; /* Increase padding for larger screens */
     }
-    body.admin-page .container { 
+    /* Specific max-width for admin panel */
+    body.admin-page .container { /* Note: admin.html does not set body.admin-page class directly, but you could add it if needed */
         max-width: 960px;
     }
 }
 
+/* Keyframe for fade-in animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Button hover effects */
 .discord-login-button:hover,
 .submit-button:hover,
 #logout-button:hover,
@@ -39,27 +47,29 @@ body {
 #accept-button:hover,
 #reject-button:hover,
 #delete-button:hover {
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); 
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Stronger shadow on hover */
 }
 
+/* Specific styling for the message box */
 #message-box {
-    background-color: #2d3748; 
-    color: #cbd5e0; 
-    border: 1px solid #4a5568; 
+    background-color: #2d3748; /* bg-gray-700 */
+    color: #cbd5e0; /* text-gray-300 */
+    border: 1px solid #4a5568; /* border-gray-600 */
 }
 
 #message-box.success {
-    background-color: #10B981; 
+    background-color: #10B981; /* bg-green-500 */
     color: white;
-    border-color: #059669; 
+    border-color: #059669; /* Darker green border */
 }
 
 #message-box.error {
-    background-color: #EF4444; 
+    background-color: #EF4444; /* bg-red-500 */
     color: white;
-    border-color: #DC2626; 
+    border-color: #DC2626; /* Darker red border */
 }
 
+/* Modal styles */
 .modal-overlay {
     transition: opacity 0.3s ease-in-out;
 }
@@ -87,54 +97,58 @@ body {
     transition: color 0.2s ease-in-out;
 }
 
+/* Style for disabled buttons */
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    box-shadow: none; 
+    box-shadow: none; /* Remove shadow when disabled */
 }
 
+/* Ensure textareas and inputs have consistent styling */
 textarea, input[type="text"], input[type="email"], input[type="number"], input[type="url"], input[type="date"], input[type="tel"] {
     box-sizing: border-box;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, input[type="url"]:focus, input[type="date"]:focus, input[type="tel"]:focus {
-    border-color: #34D399; 
-    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); 
+    border-color: #34D399; /* Green-500 */
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); /* Ring effect - green */
 }
 
 
+/* Custom styling for select dropdown */
 select {
-    appearance: none; 
+    appearance: none; /* Remove default arrow */
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1.5em 1.5em;
-    padding-right: 2.5rem; 
+    padding-right: 2.5rem; /* Make space for the custom arrow */
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 select:focus {
-    border-color: #34D399; 
-    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); 
+    border-color: #34D399; /* Green-500 */
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); /* Ring effect - green */
 }
 
+/* Custom scrollbar for modal answers */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: #374151;
+    background: #374151; /* bg-gray-700 */
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #34D399; 
+    background: #34D399; /* green-500 */
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #6EE7B7; 
+    background: #6EE7B7; /* green-400 */
 }

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userAvatarImg = document.getElementById('user-avatar');
     const logoutButton = document.getElementById('logout-button');
     const adminPanelLink = document.getElementById('admin-panel-link');
+    const adminPanelButton = document.getElementById('admin-panel-button'); // NEW: Reference to the <a> tag itself
     const applicationForm = document.getElementById('application-form');
     const applicationTypeSelect = document.getElementById('application-type');
     const questionsContainer = document.getElementById('questions-container');
@@ -49,8 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 userInfoDiv.style.display = 'flex'; // Show user info
 
                 // Show admin panel link if user is admin OR moderator
-                if (data.user.isAdmin || data.user.isModerator) { // NEW: Check for isModerator
+                if (data.user.isAdmin || data.user.isModerator) {
                     adminPanelLink.style.display = 'block';
+                    // NEW: Change button text based on role
+                    if (data.user.isModerator && !data.user.isAdmin) { // If moderator but NOT admin
+                        adminPanelButton.textContent = 'Moderator Panel';
+                    } else { // If admin
+                        adminPanelButton.textContent = 'Admin Panel';
+                    }
                 } else {
                     adminPanelLink.style.display = 'none';
                 }

@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const applicationsList = document.getElementById('applications-list');
     const loadingMessage = document.getElementById('loading-message');
     const noApplicationsMessage = document.getElementById('no-applications-message');
-    const messageBox = document.getElementById('message-box');
+    const messageBox = document.getElementById('message-box'); // This will now be primarily for errors/info that are not pop-outs
     const logoutButton = document.getElementById('logout-button-admin');
 
     // Main panel titles/descriptions
-    const mainAdminTitle = document.getElementById('main-admin-title'); // NEW
-    const sectionTitle = document.getElementById('section-title');     // NEW
-    const sectionDescription = document.getElementById('section-description'); // NEW
+    const mainAdminTitle = document.getElementById('main-admin-title');
+    const sectionTitle = document.getElementById('section-title');
+    const sectionDescription = document.getElementById('section-description');
 
     // Search elements
     const applicationSearchInput = document.getElementById('application-search-input');
@@ -61,11 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalReviewReasonContainer = document.getElementById('modal-review-reason-container');
     const modalReviewReasonInput = document.getElementById('modal-review-reason');
 
+    // Custom Confirmation Modal elements (NEW)
+    const customConfirmModal = document.getElementById('custom-confirm-modal');
+    const customConfirmMessage = document.getElementById('custom-confirm-message');
+    const customConfirmYesBtn = document.getElementById('custom-confirm-yes');
+    const customConfirmNoBtn = document.getElementById('custom-confirm-no');
+
+    // Notification Container (NEW)
+    const notificationContainer = document.getElementById('notification-container');
+
+
     let currentApplicationId = null; // To keep track of the application being viewed in the modal
     let currentUserIsAdmin = false; // To store current user's admin status
     let currentUserIsModerator = false; // To store current user's moderator status
 
-    // Function to display messages to the user
+    // Function to display messages to the user (still used for in-page errors/info)
     function showMessage(message, type = 'info') {
         messageBox.textContent = message;
         messageBox.className = `mt-6 p-4 rounded-lg text-center ${type}`; // Apply Tailwind classes
@@ -76,6 +86,70 @@ document.addEventListener('DOMContentLoaded', () => {
             messageBox.style.display = 'none';
         }, 5000);
     }
+
+    // NEW: Function to show pop-out notifications
+    function showNotification(message, type = 'success', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `p-4 rounded-lg shadow-lg text-white text-sm animate-slide-in-right transition-transform duration-500 ease-out transform translate-x-full`;
+
+        if (type === 'success') {
+            notification.classList.add('bg-green-600');
+        } else if (type === 'error') {
+            notification.classList.add('bg-red-600');
+        } else if (type === 'info') {
+            notification.classList.add('bg-blue-600');
+        }
+
+        notification.textContent = message;
+        notificationContainer.appendChild(notification);
+
+        // Trigger slide-in animation
+        requestAnimationFrame(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+            notification.classList.add('animate-slide-out-right');
+            notification.addEventListener('animationend', () => {
+                notification.remove();
+            }, { once: true });
+        }, duration);
+    }
+
+
+    // NEW: Custom Confirmation Prompt
+    function customConfirm(message) {
+        return new Promise((resolve) => {
+            customConfirmMessage.textContent = message;
+            customConfirmModal.classList.remove('hidden');
+
+            const onYes = () => {
+                customConfirmModal.classList.add('hidden');
+                customConfirmYesBtn.removeEventListener('click', onYes);
+                customConfirmNoBtn.removeEventListener('click', onNo);
+                resolve(true);
+            };
+
+            const onNo = () => {
+                customConfirmModal.classList.add('hidden');
+                customConfirmYesBtn.removeEventListener('click', onYes);
+                customConfirmNoBtn.removeEventListener('click', onNo);
+                resolve(false);
+            };
+
+            customConfirmYesBtn.addEventListener('click', onYes);
+            customConfirmNoBtn.addEventListener('click', onNo);
+
+            // Close if overlay clicked
+            customConfirmModal.addEventListener('click', (e) => {
+                if (e.target === customConfirmModal) {
+                    onNo(); // Treat clicking outside as 'No'
+                }
+            }, { once: true });
+        });
+    }
+
 
     // Function to fetch and verify session info (especially admin/moderator status)
     async function fetchSessionAndVerifyRoles() {
@@ -379,16 +453,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!currentUserIsAdmin) { // Double-check on client-side
-            showMessage('You do not have permission to accept or reject applications.', 'error');
+            showNotification('You do not have permission to accept or reject applications.', 'error');
             return;
         }
 
         const reviewReason = modalReviewReasonInput.value.trim();
 
+        // Use custom confirm for status update
+        const confirmAction = await customConfirm(`Are you sure you want to ${status} this application?`);
+        if (!confirmAction) {
+            return; // User cancelled
+        }
+
         acceptButton.disabled = true;
         rejectButton.disabled = true;
         deleteButton.disabled = true;
-        showMessage(`Updating status to ${status}...`, 'info');
+        showNotification(`Updating status to ${status}...`, 'info');
 
         try {
             const response = await fetch(`/api/applications/${currentApplicationId}/status`, {
@@ -402,15 +482,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage(`Application status updated to ${status}.`, 'success');
+                showNotification(`Application status updated to ${status}.`, 'success');
                 closeApplicationModal();
                 fetchApplications(); // Refresh the list
             } else {
-                showMessage(`Failed to update status: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to update status: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
                 console.error('Error updating application status:', error);
-                showMessage('Network error while updating status. Please try again.', 'error');
+                showNotification('Network error while updating status. Please try again.', 'error');
         } finally {
             acceptButton.disabled = false;
             rejectButton.disabled = false;
@@ -425,12 +505,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!currentUserIsAdmin) { // Double-check on client-side
-            showMessage('You do not have permission to delete applications.', 'error');
+            showNotification('You do not have permission to delete applications.', 'error');
             return;
         }
 
-        const confirmDelete = window.confirm('Are you sure you want to delete this application? This action cannot be undone.');
-
+        // Use custom confirm for deletion
+        const confirmDelete = await customConfirm('Are you sure you want to delete this application? This action cannot be undone.');
         if (!confirmDelete) {
             return; // User cancelled
         }
@@ -438,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
         acceptButton.disabled = true;
         rejectButton.disabled = true;
         deleteButton.disabled = true;
-        showMessage('Deleting application...', 'info');
+        showNotification('Deleting application...', 'info');
 
         try {
             const response = await fetch(`/api/applications/${currentApplicationId}`, {
@@ -451,15 +531,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('Application deleted successfully!', 'success');
+                showNotification('Application deleted successfully!', 'success');
                 closeApplicationModal();
                 fetchApplications(); // Refresh the list
             } else {
-                showMessage(`Failed to delete application: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to delete application: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error deleting application:', error);
-            showMessage('Network error while deleting application. Please try again.', 'error');
+            showNotification('Network error while deleting application. Please try again.', 'error');
         } finally {
             acceptButton.disabled = false;
             rejectButton.disabled = false;
@@ -486,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error fetching admins:', error);
-            showMessage('Failed to load admins. Please try again.', 'error');
+            showNotification('Failed to load admins. Please try again.', 'error');
             adminsList.innerHTML = '<p class="text-red-400 text-center">Error loading admins.</p>';
         }
     }
@@ -502,7 +582,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <button class="remove-admin-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-4 rounded-full text-sm transition duration-300 ease-in-out" data-discord-id="${admin.discordId}">Remove</button>
         `;
-        adminCard.querySelector('.remove-admin-btn').addEventListener('click', (e) => removeAdmin(e.target.dataset.discordId));
+        adminCard.querySelector('.remove-admin-btn').addEventListener('click', async (e) => {
+            const discordIdToRemove = e.target.dataset.discordId;
+            const confirmRemove = await customConfirm(`Are you sure you want to remove admin ${discordIdToRemove}?`);
+            if (confirmRemove) {
+                removeAdmin(discordIdToRemove);
+            }
+        });
         return adminCard;
     }
 
@@ -511,12 +597,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = addAdminUsernameInput.value.trim();
 
         if (!discordId || !username) {
-            showMessage('Discord ID and Username are required to add an admin.', 'error');
+            showNotification('Discord ID and Username are required to add an admin.', 'error');
             return;
         }
 
         addAdminBtn.disabled = true;
-        showMessage('Adding admin...', 'info');
+        showNotification('Adding admin...', 'info');
 
         try {
             const response = await fetch('/api/admins', {
@@ -527,26 +613,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('Admin added successfully!', 'success');
+                showNotification('Admin added successfully!', 'success');
                 addAdminIdInput.value = '';
                 addAdminUsernameInput.value = '';
                 fetchAdmins(); // Refresh the list
             } else {
-                showMessage(`Failed to add admin: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to add admin: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error adding admin:', error);
-            showMessage('Network error while adding admin. Please try again.', 'error');
+            showNotification('Network error while adding admin. Please try again.', 'error');
         } finally {
             addAdminBtn.disabled = false;
         }
     }
 
     async function removeAdmin(discordId) {
-        const confirmRemove = window.confirm(`Are you sure you want to remove admin ${discordId}?`);
-        if (!confirmRemove) return;
-
-        showMessage('Removing admin...', 'info');
+        showNotification('Removing admin...', 'info');
         try {
             const response = await fetch(`/api/admins/${discordId}`, {
                 method: 'DELETE'
@@ -554,14 +637,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('Admin removed successfully!', 'success');
+                showNotification('Admin removed successfully!', 'success');
                 fetchAdmins(); // Refresh the list
             } else {
-                showMessage(`Failed to remove admin: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to remove admin: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error removing admin:', error);
-            showMessage('Network error while removing admin. Please try again.', 'error');
+            showNotification('Network error while removing admin. Please try again.', 'error');
         }
     }
 
@@ -584,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error fetching moderators:', error);
-            showMessage('Failed to load moderators. Please try again.', 'error');
+            showNotification('Failed to load moderators. Please try again.', 'error');
             moderatorsList.innerHTML = '<p class="text-red-400 text-center">Error loading moderators.</p>';
         }
     }
@@ -600,7 +683,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <button class="remove-moderator-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-4 rounded-full text-sm transition duration-300 ease-in-out" data-discord-id="${moderator.discordId}">Remove</button>
         `;
-        moderatorCard.querySelector('.remove-moderator-btn').addEventListener('click', (e) => removeModerator(e.target.dataset.discordId));
+        moderatorCard.querySelector('.remove-moderator-btn').addEventListener('click', async (e) => {
+            const discordIdToRemove = e.target.dataset.discordId;
+            const confirmRemove = await customConfirm(`Are you sure you want to remove moderator ${discordIdToRemove}?`);
+            if (confirmRemove) {
+                removeModerator(discordIdToRemove);
+            }
+        });
         return moderatorCard;
     }
 
@@ -609,12 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = addModeratorUsernameInput.value.trim();
 
         if (!discordId || !username) {
-            showMessage('Discord ID and Username are required to add a moderator.', 'error');
+            showNotification('Discord ID and Username are required to add a moderator.', 'error');
             return;
         }
 
         addModeratorBtn.disabled = true;
-        showMessage('Adding moderator...', 'info');
+        showNotification('Adding moderator...', 'info');
 
         try {
             const response = await fetch('/api/moderators', {
@@ -625,26 +714,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('Moderator added successfully!', 'success');
+                showNotification('Moderator added successfully!', 'success');
                 addModeratorIdInput.value = '';
                 addModeratorUsernameInput.value = '';
                 fetchModerators(); // Refresh the list
             } else {
-                showMessage(`Failed to add moderator: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to add moderator: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error adding moderator:', error);
-            showMessage('Network error while adding moderator. Please try again.', 'error');
+            showNotification('Network error while adding moderator. Please try again.', 'error');
         } finally {
             addModeratorBtn.disabled = false;
         }
     }
 
     async function removeModerator(discordId) {
-        const confirmRemove = window.confirm(`Are you sure you want to remove moderator ${discordId}?`);
-        if (!confirmRemove) return;
-
-        showMessage('Removing moderator...', 'info');
+        showNotification('Removing moderator...', 'info');
         try {
             const response = await fetch(`/api/moderators/${discordId}`, {
                 method: 'DELETE'
@@ -652,14 +738,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('Moderator removed successfully!', 'success');
+                showNotification('Moderator removed successfully!', 'success');
                 fetchModerators(); // Refresh the list
             } else {
-                showMessage(`Failed to remove moderator: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to remove moderator: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error removing moderator:', error);
-            showMessage('Network error while removing moderator. Please try again.', 'error');
+            showNotification('Network error while removing moderator. Please try again.', 'error');
         }
     }
 
@@ -682,7 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error fetching blacklisted users:', error);
-            showMessage('Failed to load blacklisted users. Please try again.', 'error');
+            showNotification('Failed to load blacklisted users. Please try again.', 'error');
             blacklistList.innerHTML = '<p class="text-red-400 text-center">Error loading blacklisted users.</p>';
         }
     }
@@ -699,7 +785,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <button class="remove-blacklist-btn bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 px-4 rounded-full text-sm transition duration-300 ease-in-out" data-discord-id="${user.discordId}">Remove</button>
         `;
-        userCard.querySelector('.remove-blacklist-btn').addEventListener('click', (e) => removeBlacklistedUser(e.target.dataset.discordId));
+        userCard.querySelector('.remove-blacklist-btn').addEventListener('click', async (e) => {
+            const discordIdToRemove = e.target.dataset.discordId;
+            const confirmRemove = await customConfirm(`Are you sure you want to remove ${discordIdToRemove} from the blacklist?`);
+            if (confirmRemove) {
+                removeBlacklistedUser(discordIdToRemove);
+            }
+        });
         return userCard;
     }
 
@@ -709,12 +801,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const reason = addBlacklistReasonInput.value.trim();
 
         if (!discordId || !username) {
-            showMessage('Discord ID and Username are required to blacklist a user.', 'error');
+            showNotification('Discord ID and Username are required to blacklist a user.', 'error');
             return;
         }
 
         addBlacklistBtn.disabled = true;
-        showMessage('Blacklisting user...', 'info');
+        showNotification('Blacklisting user...', 'info');
 
         try {
             const response = await fetch('/api/blacklist', {
@@ -725,27 +817,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('User blacklisted successfully!', 'success');
+                showNotification('User blacklisted successfully!', 'success');
                 addBlacklistIdInput.value = '';
                 addBlacklistUsernameInput.value = '';
                 addBlacklistReasonInput.value = '';
                 fetchBlacklistedUsers(); // Refresh the list
             } else {
-                showMessage(`Failed to blacklist user: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to blacklist user: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error blacklisting user:', error);
-            showMessage('Network error while blacklisting user. Please try again.', 'error');
+            showNotification('Network error while blacklisting user. Please try again.', 'error');
         } finally {
             addBlacklistBtn.disabled = false;
         }
     }
 
     async function removeBlacklistedUser(discordId) {
-        const confirmRemove = window.confirm(`Are you sure you want to remove user ${discordId} from the blacklist?`);
-        if (!confirmRemove) return;
-
-        showMessage('Removing user from blacklist...', 'info');
+        showNotification('Removing user from blacklist...', 'info');
         try {
             const response = await fetch(`/api/blacklist/${discordId}`, {
                 method: 'DELETE'
@@ -753,14 +842,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showMessage('User removed from blacklist successfully!', 'success');
+                showNotification('User removed from blacklist successfully!', 'success');
                 fetchBlacklistedUsers(); // Refresh the list
             } else {
-                showMessage(`Failed to remove user from blacklist: ${result.message || 'Unknown error.'}`, 'error');
+                showNotification(`Failed to remove user from blacklist: ${result.message || 'Unknown error.'}`, 'error');
             }
         } catch (error) {
             console.error('Error removing blacklisted user:', error);
-            showMessage('Network error while removing blacklisted user. Please try again.', 'error');
+            showNotification('Network error while removing blacklisted user. Please try again.', 'error');
         }
     }
 
@@ -809,11 +898,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 window.location.href = '/';
             } else {
-                showMessage('Failed to log out. Please try again.', 'error');
+                showNotification('Failed to log out. Please try again.', 'error');
             }
         } catch (error) {
                 console.error('Error during logout:', error);
-                showMessage('Network error during logout. Please try again.', 'error');
+                showNotification('Network error during logout. Please try again.', 'error');
         }
     });
 

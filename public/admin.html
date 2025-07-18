@@ -8,6 +8,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animations for pop-out notifications */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .animate-slide-in-right {
+            animation: slideInRight 0.5s ease-out forwards;
+        }
+
+        .animate-slide-out-right {
+            animation: slideOutRight 0.5s ease-in forwards;
+        }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
 
@@ -78,7 +110,7 @@
 
             <!-- Admin Management Section -->
             <div id="admins-section" class="hidden space-y-6 flex-grow overflow-y-auto custom-scrollbar pr-2">
-                <h3 class="text-2xl font-bold text-green-300 mb-4 text-center">Manage Administrators</h3>
+                <h3 class="2xl font-bold text-green-300 mb-4 text-center">Manage Administrators</h3>
                 <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
                     <input type="text" id="add-admin-id" placeholder="Discord User ID" class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-white placeholder-gray-400">
                     <input type="text" id="add-admin-username" placeholder="Discord Username" class="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-white placeholder-gray-400">
@@ -141,6 +173,22 @@
             </div>
             <p id="modal-status" class="mt-4 text-right text-lg font-semibold"></p>
         </div>
+    </div>
+
+    <!-- Custom Confirmation Modal (NEW) -->
+    <div id="custom-confirm-modal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="modal-content bg-gray-800 bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-2xl max-w-sm w-full text-center relative border border-green-700/50">
+            <p id="custom-confirm-message" class="text-lg font-semibold text-gray-200 mb-6">Are you sure?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="custom-confirm-yes" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 ease-in-out shadow-md">Yes</button>
+                <button id="custom-confirm-no" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 ease-in-out shadow-md">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pop-out Notifications Container (NEW) -->
+    <div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-3">
+        <!-- Notifications will be injected here -->
     </div>
 
     <script src="admin.js"></script>
