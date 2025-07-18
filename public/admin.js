@@ -1,22 +1,17 @@
-// public/admin.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const applicationsList = document.getElementById('applications-list');
     const loadingMessage = document.getElementById('loading-message');
     const noApplicationsMessage = document.getElementById('no-applications-message');
-    const messageBox = document.getElementById('message-box'); // This will now be primarily for errors/info that are not pop-outs
+    const messageBox = document.getElementById('message-box')
     const logoutButton = document.getElementById('logout-button-admin');
 
-    // Main panel titles/descriptions
     const mainAdminTitle = document.getElementById('main-admin-title');
     const sectionTitle = document.getElementById('section-title');
     const sectionDescription = document.getElementById('section-description');
 
-    // Search elements
     const applicationSearchInput = document.getElementById('application-search-input');
     const searchButton = document.getElementById('search-button');
 
-    // Tab buttons and sections
     const showApplicationsBtn = document.getElementById('show-applications-btn');
     const showModeratorsBtn = document.getElementById('show-moderators-btn');
     const showAdminsBtn = document.getElementById('show-admins-btn');
@@ -26,26 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminsSection = document.getElementById('admins-section');
     const blacklistSection = document.getElementById('blacklist-section');
 
-    // Admin management elements
     const addAdminIdInput = document.getElementById('add-admin-id');
     const addAdminUsernameInput = document.getElementById('add-admin-username');
     const addAdminBtn = document.getElementById('add-admin-btn');
     const adminsList = document.getElementById('admins-list');
 
-    // Moderator management elements
     const addModeratorIdInput = document.getElementById('add-moderator-id');
     const addModeratorUsernameInput = document.getElementById('add-moderator-username');
     const addModeratorBtn = document.getElementById('add-moderator-btn');
     const moderatorsList = document.getElementById('moderators-list');
 
-    // Blacklist management elements
     const addBlacklistIdInput = document.getElementById('add-blacklist-id');
     const addBlacklistUsernameInput = document.getElementById('add-blacklist-username');
     const addBlacklistReasonInput = document.getElementById('add-blacklist-reason');
     const addBlacklistBtn = document.getElementById('add-blacklist-btn');
     const blacklistList = document.getElementById('blacklist-list');
 
-    // Modal elements
     const applicationModal = document.getElementById('application-modal');
     const modalCloseButton = document.querySelector('.modal-close-button');
     const modalApplicantName = document.getElementById('modal-applicant-name');
@@ -61,33 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalReviewReasonContainer = document.getElementById('modal-review-reason-container');
     const modalReviewReasonInput = document.getElementById('modal-review-reason');
 
-    // Custom Confirmation Modal elements (NEW)
     const customConfirmModal = document.getElementById('custom-confirm-modal');
     const customConfirmMessage = document.getElementById('custom-confirm-message');
     const customConfirmYesBtn = document.getElementById('custom-confirm-yes');
     const customConfirmNoBtn = document.getElementById('custom-confirm-no');
 
-    // Notification Container (NEW)
     const notificationContainer = document.getElementById('notification-container');
 
 
-    let currentApplicationId = null; // To keep track of the application being viewed in the modal
-    let currentUserIsAdmin = false; // To store current user's admin status
-    let currentUserIsModerator = false; // To store current user's moderator status
+    let currentApplicationId = null;
+    let currentUserIsAdmin = false; 
+    let currentUserIsModerator = false; 
 
-    // Function to display messages to the user (still used for in-page errors/info)
     function showMessage(message, type = 'info') {
         messageBox.textContent = message;
-        messageBox.className = `mt-6 p-4 rounded-lg text-center ${type}`; // Apply Tailwind classes
+        messageBox.className = `mt-6 p-4 rounded-lg text-center ${type}`; 
         messageBox.style.display = 'block';
 
-        // Automatically hide after 5 seconds
         setTimeout(() => {
             messageBox.style.display = 'none';
         }, 5000);
     }
 
-    // NEW: Function to show pop-out notifications
     function showNotification(message, type = 'success', duration = 3000) {
         const notification = document.createElement('div');
         notification.className = `p-4 rounded-lg shadow-lg text-white text-sm animate-slide-in-right transition-transform duration-500 ease-out transform translate-x-full`;
@@ -103,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         notification.textContent = message;
         notificationContainer.appendChild(notification);
 
-        // Trigger slide-in animation
         requestAnimationFrame(() => {
             notification.style.transform = 'translateX(0)';
             notification.style.opacity = '1';
@@ -118,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // NEW: Custom Confirmation Prompt
     function customConfirm(message) {
         return new Promise((resolve) => {
             customConfirmMessage.textContent = message;
@@ -141,17 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
             customConfirmYesBtn.addEventListener('click', onYes);
             customConfirmNoBtn.addEventListener('click', onNo);
 
-            // Close if overlay clicked
             customConfirmModal.addEventListener('click', (e) => {
                 if (e.target === customConfirmModal) {
-                    onNo(); // Treat clicking outside as 'No'
+                    onNo(); 
                 }
             }, { once: true });
         });
     }
 
 
-    // Function to fetch and verify session info (especially admin/moderator status)
     async function fetchSessionAndVerifyRoles() {
         try {
             const response = await fetch('/api/session');
@@ -165,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUserIsAdmin = data.user.isAdmin;
                 currentUserIsModerator = data.user.isModerator;
 
-                // Set main title based on role
                 if (currentUserIsAdmin) {
                     mainAdminTitle.textContent = 'Admin Hub';
                 } else if (currentUserIsModerator) {
@@ -176,13 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     return false;
                 }
 
-                // Hide admin-only tabs for moderators
                 if (!currentUserIsAdmin) {
                     showAdminsBtn.style.display = 'none';
                     showBlacklistBtn.style.display = 'none';
-                    showModeratorsBtn.style.display = 'none'; // Moderators cannot manage other moderators
+                    showModeratorsBtn.style.display = 'none'; 
                 } else {
-                    // Ensure admin-only tabs are visible for admins
                     showAdminsBtn.style.display = 'inline-block';
                     showBlacklistBtn.style.display = 'inline-block';
                     showModeratorsBtn.style.display = 'inline-block';
@@ -201,15 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Tab Management ---
     function showSection(sectionId) {
-        // Hide all sections
         applicationsSection.classList.add('hidden');
         moderatorsSection.classList.add('hidden');
         adminsSection.classList.add('hidden');
         blacklistSection.classList.add('hidden');
 
-        // Deactivate all buttons
         showApplicationsBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
         showApplicationsBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
         showModeratorsBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
@@ -219,11 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showBlacklistBtn.classList.remove('bg-green-700', 'hover:bg-green-600');
         showBlacklistBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
 
-        // Set section titles and descriptions
         let titleText = '';
         let descriptionText = '';
 
-        // Show target section and activate its button
         switch (sectionId) {
             case 'applications':
                 applicationsSection.classList.remove('hidden');
@@ -231,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showApplicationsBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                 titleText = 'Pending Applications';
                 descriptionText = 'Review applications that are awaiting a decision.';
-                fetchApplications(); // Refresh applications when showing this tab
+                fetchApplications(); 
                 break;
             case 'moderators':
                 if (!currentUserIsAdmin) {
@@ -277,11 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sectionDescription.textContent = descriptionText;
     }
 
-    // --- Application List Functions ---
     function renderApplicationCard(app) {
         const appCard = document.createElement('div');
         appCard.className = 'bg-gray-700 p-6 rounded-lg shadow-md flex flex-col md:flex-row items-center justify-between cursor-pointer hover:bg-gray-600 transition duration-200';
-        appCard.dataset.applicationId = app._id; // Use _id from MongoDB
+        appCard.dataset.applicationId = app._id; 
 
         const userInfo = document.createElement('div');
         userInfo.className = 'flex items-center mb-4 md:mb-0';
@@ -314,20 +287,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchApplications(applicationId = null) {
-        const hasAccess = await fetchSessionAndVerifyRoles(); // Verify roles before fetching
+        const hasAccess = await fetchSessionAndVerifyRoles(); 
         if (!hasAccess) {
             loadingMessage.style.display = 'none';
             return;
         }
 
         loadingMessage.style.display = 'block';
-        applicationsList.innerHTML = ''; // Clear previous list
+        applicationsList.innerHTML = ''; 
         noApplicationsMessage.style.display = 'none';
-        showMessage('', 'hidden'); // Clear any previous messages
+        showMessage('', 'hidden'); 
 
-        let url = '/api/applications'; // Default to fetching pending applications
+        let url = '/api/applications'; 
         if (applicationId) {
-            url = `/api/applications/${applicationId}`; // Override to fetch specific ID
+            url = `/api/applications/${applicationId}`; 
         }
 
         try {
@@ -352,13 +325,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.success) {
                 let appsToDisplay = [];
-                if (applicationId) { // If searching for a single app
+                if (applicationId) {
                     if (data.application) {
                         appsToDisplay.push(data.application);
-                        // Automatically open modal for single search result
                         openApplicationModal(data.application);
                     }
-                } else { // If fetching all pending apps
+                } else { 
                     appsToDisplay = data.applications;
                 }
 
@@ -381,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Application Modal Functions ---
     function openApplicationModal(app) {
         currentApplicationId = app._id;
         modalApplicantName.textContent = app.username;
@@ -403,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
             modalAnswers.appendChild(answerDiv);
         }
 
-        // Display reviewer info if available
         if (app.reviewedByUsername && app.reviewedByDiscordId && app.reviewTimestamp) {
             modalReviewerInfo.textContent = `Reviewed By: ${app.reviewedByUsername} (${app.reviewedByDiscordId})`;
             modalReviewDate.textContent = `Review Date: ${new Date(app.reviewTimestamp).toLocaleString()}`;
@@ -416,26 +386,24 @@ document.addEventListener('DOMContentLoaded', () => {
             modalReviewDate.textContent = '';
         }
 
-        // Handle review reason input/display and permissions
-        if (app.status === 'pending' && currentUserIsAdmin) { // Only admins can edit reason for pending apps
+        if (app.status === 'pending' && currentUserIsAdmin) { 
             modalReviewReasonContainer.style.display = 'block';
-            modalReviewReasonInput.value = app.reviewReason || ''; // Pre-fill if exists
-            modalReviewReasonInput.readOnly = false; // Make editable
+            modalReviewReasonInput.value = app.reviewReason || ''; 
+            modalReviewReasonInput.readOnly = false; 
             modalReviewReasonInput.classList.remove('opacity-70', 'cursor-not-allowed');
-        } else if (app.reviewReason) { // Display reason if exists for reviewed apps (read-only for all)
+        } else if (app.reviewReason) {
             modalReviewReasonContainer.style.display = 'block';
             modalReviewReasonInput.value = app.reviewReason;
-            modalReviewReasonInput.readOnly = true; // Make read-only
+            modalReviewReasonInput.readOnly = true; 
             modalReviewReasonInput.classList.add('opacity-70', 'cursor-not-allowed');
-        } else { // Hide reason if no reason and not pending/admin
+        } else { 
             modalReviewReasonContainer.style.display = 'none';
             modalReviewReasonInput.value = '';
         }
 
-        // Disable Accept/Reject/Delete buttons based on status AND user role
         acceptButton.disabled = (app.status !== 'pending' || !currentUserIsAdmin);
         rejectButton.disabled = (app.status !== 'pending' || !currentUserIsAdmin);
-        deleteButton.disabled = !currentUserIsAdmin; // Only admins can delete
+        deleteButton.disabled = !currentUserIsAdmin; 
 
         applicationModal.classList.remove('hidden');
     }
@@ -443,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeApplicationModal() {
         applicationModal.classList.add('hidden');
         currentApplicationId = null;
-        modalReviewReasonInput.value = ''; // Clear reason input on close
+        modalReviewReasonInput.value = ''; 
     }
 
     async function updateApplicationStatus(status) {
@@ -452,17 +420,16 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage('Error: No application selected.', 'error');
             return;
         }
-        if (!currentUserIsAdmin) { // Double-check on client-side
+        if (!currentUserIsAdmin) { 
             showNotification('You do not have permission to accept or reject applications.', 'error');
             return;
         }
 
         const reviewReason = modalReviewReasonInput.value.trim();
 
-        // Use custom confirm for status update
         const confirmAction = await customConfirm(`Are you sure you want to ${status} this application?`);
         if (!confirmAction) {
-            return; // User cancelled
+            return; 
         }
 
         acceptButton.disabled = true;
@@ -484,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok && result.success) {
                 showNotification(`Application status updated to ${status}.`, 'success');
                 closeApplicationModal();
-                fetchApplications(); // Refresh the list
+                fetchApplications(); 
             } else {
                 showNotification(`Failed to update status: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -504,15 +471,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage('Error: No application selected.', 'error');
             return;
         }
-        if (!currentUserIsAdmin) { // Double-check on client-side
+        if (!currentUserIsAdmin) { 
             showNotification('You do not have permission to delete applications.', 'error');
             return;
         }
 
-        // Use custom confirm for deletion
         const confirmDelete = await customConfirm('Are you sure you want to delete this application? This action cannot be undone.');
         if (!confirmDelete) {
-            return; // User cancelled
+            return; 
         }
 
         acceptButton.disabled = true;
@@ -533,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok && result.success) {
                 showNotification('Application deleted successfully!', 'success');
                 closeApplicationModal();
-                fetchApplications(); // Refresh the list
+                fetchApplications(); 
             } else {
                 showNotification(`Failed to delete application: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -547,7 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Admin Management Functions ---
     async function fetchAdmins() {
         adminsList.innerHTML = '<p class="text-gray-400 text-center">Loading admins...</p>';
         try {
@@ -557,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             if (data.success && data.admins.length > 0) {
-                adminsList.innerHTML = ''; // Clear loading message
+                adminsList.innerHTML = ''; 
                 data.admins.forEach(admin => {
                     adminsList.appendChild(renderAdminCard(admin));
                 });
@@ -616,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNotification('Admin added successfully!', 'success');
                 addAdminIdInput.value = '';
                 addAdminUsernameInput.value = '';
-                fetchAdmins(); // Refresh the list
+                fetchAdmins(); 
             } else {
                 showNotification(`Failed to add admin: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -638,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok && result.success) {
                 showNotification('Admin removed successfully!', 'success');
-                fetchAdmins(); // Refresh the list
+                fetchAdmins(); 
             } else {
                 showNotification(`Failed to remove admin: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -648,7 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Moderator Management Functions ---
     async function fetchModerators() {
         moderatorsList.innerHTML = '<p class="text-gray-400 text-center">Loading moderators...</p>';
         try {
@@ -658,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             if (data.success && data.moderators.length > 0) {
-                moderatorsList.innerHTML = ''; // Clear loading message
+                moderatorsList.innerHTML = ''; 
                 data.moderators.forEach(moderator => {
                     moderatorsList.appendChild(renderModeratorCard(moderator));
                 });
@@ -717,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNotification('Moderator added successfully!', 'success');
                 addModeratorIdInput.value = '';
                 addModeratorUsernameInput.value = '';
-                fetchModerators(); // Refresh the list
+                fetchModerators(); 
             } else {
                 showNotification(`Failed to add moderator: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -739,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok && result.success) {
                 showNotification('Moderator removed successfully!', 'success');
-                fetchModerators(); // Refresh the list
+                fetchModerators(); 
             } else {
                 showNotification(`Failed to remove moderator: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -749,7 +713,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Blacklist Management Functions ---
     async function fetchBlacklistedUsers() {
         blacklistList.innerHTML = '<p class="text-gray-400 text-center">Loading blacklisted users...</p>';
         try {
@@ -759,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             if (data.success && data.blacklistedUsers.length > 0) {
-                blacklistList.innerHTML = ''; // Clear loading message
+                blacklistList.innerHTML = ''; 
                 data.blacklistedUsers.forEach(user => {
                     blacklistList.appendChild(renderBlacklistedUserCard(user));
                 });
@@ -821,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addBlacklistIdInput.value = '';
                 addBlacklistUsernameInput.value = '';
                 addBlacklistReasonInput.value = '';
-                fetchBlacklistedUsers(); // Refresh the list
+                fetchBlacklistedUsers(); 
             } else {
                 showNotification(`Failed to blacklist user: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -843,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok && result.success) {
                 showNotification('User removed from blacklist successfully!', 'success');
-                fetchBlacklistedUsers(); // Refresh the list
+                fetchBlacklistedUsers(); 
             } else {
                 showNotification(`Failed to remove user from blacklist: ${result.message || 'Unknown error.'}`, 'error');
             }
@@ -854,7 +817,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- Event Listeners ---
     modalCloseButton.addEventListener('click', closeApplicationModal);
     applicationModal.addEventListener('click', (e) => {
         if (e.target === applicationModal) {
@@ -865,7 +827,6 @@ document.addEventListener('DOMContentLoaded', () => {
     rejectButton.addEventListener('click', () => updateApplicationStatus('rejected'));
     deleteButton.addEventListener('click', deleteApplication);
 
-    // Search event listener
     searchButton.addEventListener('click', () => {
         const searchTerm = applicationSearchInput.value.trim();
         if (searchTerm) {
@@ -875,23 +836,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Tab button event listeners
     showApplicationsBtn.addEventListener('click', () => showSection('applications'));
     showModeratorsBtn.addEventListener('click', () => showSection('moderators'));
     showAdminsBtn.addEventListener('click', () => showSection('admins'));
     showBlacklistBtn.addEventListener('click', () => showSection('blacklist'));
 
-    // Admin management button listeners
     addAdminBtn.addEventListener('click', addAdmin);
 
-    // Moderator management button listeners
     addModeratorBtn.addEventListener('click', addModerator);
 
-    // Blacklist management button listeners
     addBlacklistBtn.addEventListener('click', addBlacklistedUser);
 
 
-    // Handle logout
     logoutButton.addEventListener('click', async () => {
         try {
             const response = await fetch('/auth/logout');
@@ -906,7 +862,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initial load: Fetch roles and then show applications section by default
     fetchSessionAndVerifyRoles().then(hasAccess => {
         if (hasAccess) {
             showSection('applications');
