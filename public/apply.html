@@ -6,36 +6,42 @@
     <title>Submit Your Application</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4">
+    <!-- Main content wrapper: Split Screen Layout -->
     <div class="relative w-full max-w-6xl h-[95vh] bg-gray-800 bg-opacity-90 backdrop-blur-md rounded-xl shadow-2xl border border-green-700/50 flex flex-col md:flex-row overflow-hidden">
 
+        <!-- Left Panel: Branding / Info -->
         <div class="w-full md:w-1/3 lg:w-1/4 bg-gray-950 bg-opacity-70 border-b md:border-b-0 md:border-r border-green-700/50 p-8 flex flex-col justify-between items-center text-center">
             <div class="flex flex-col items-center w-full">
                 <h1 class="text-4xl lg:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-500">
                     App Hub
                 </h1>
                 <p class="text-gray-400 text-lg mb-10 max-w-xs leading-relaxed">
-                  
+                   
                 </p>
 
+                <!-- User Info Card -->
                 <div id="user-info" class="bg-gray-700 bg-opacity-70 p-5 rounded-lg flex flex-col items-center border border-gray-600 shadow-inner w-full">
                     <img id="user-avatar" class="w-24 h-24 rounded-full mb-4 border-4 border-green-500 shadow-lg" alt="User Avatar" style="display: none;">
                     <p class="text-xl text-gray-200 mb-4">Logged in as:</p>
                     <p class="text-2xl font-semibold text-green-300 break-words max-w-full text-center" id="username">Loading...</p>
                     <button id="logout-button" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
-                        Logout
+                        Logoutgimm
                     </button>
                 </div>
             </div>
 
+            <!-- My Applications Button -->
             <div class="mt-12 w-full">
                 <a href="/myapplications.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md text-center">
                     My Applications
                 </a>
             </div>
 
+            <!-- Admin Panel Link (conditionally displayed for Admins/Moderators) -->
             <div id="admin-panel-link" class="mt-4 w-full" style="display: none;">
                 <a href="/admin.html" class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-md text-center">
                     Admin Panel
@@ -43,6 +49,7 @@
             </div>
         </div>
 
+        <!-- Right Panel: Application Form Area -->
         <div class="w-full md:w-2/3 lg:w-3/4 p-8 md:p-10 flex flex-col relative overflow-y-auto custom-scrollbar">
             <h2 class="text-3xl lg:text-4xl font-bold text-green-300 mb-6 text-center">Submit Your Application</h2>
             <p class="text-gray-400 text-center mb-8">
@@ -50,17 +57,21 @@
             </p>
 
             <form id="application-form" class="space-y-6 text-left flex-grow">
+                <!-- Application Type Selection -->
                 <div>
                     <label for="application-type" class="block text-lg font-medium text-gray-300 mb-2">
                         Choose Application Type:
                     </label>
                     <select id="application-type" name="applicationType"
                             class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-white cursor-pointer transition duration-200" required>
-                        <option value="">Select an option</option>
+                        <option value="">-- Select an Application Type --</option>
+                        <!-- Options will be dynamically loaded by script.js -->
                     </select>
                 </div>
 
+                <!-- Dynamic Question Fields -->
                 <div id="questions-container" class="space-y-4">
+                    <!-- Dynamic questions will be injected here -->
                 </div>
 
                 <button type="submit"
