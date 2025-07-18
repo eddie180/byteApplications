@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+.container {
+    max-width: 90%;
+    margin: 20px auto; 
+    padding: 2rem; 
+    position: relative; 
+    animation: fadeIn 0.8s ease-out; 
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 600px; 
+        padding: 3rem;
+    }
+    body.admin-page .container { 
+        max-width: 960px;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.discord-login-button:hover,
+.submit-button:hover,
+#logout-button:hover,
+#logout-button-admin:hover,
+#admin-panel-link a:hover,
+#accept-button:hover,
+#reject-button:hover,
+#delete-button:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); 
+}
+
+#message-box {
+    background-color: #2d3748; 
+    color: #cbd5e0; 
+    border: 1px solid #4a5568; 
+}
+
+#message-box.success {
+    background-color: #10B981; 
+    color: white;
+    border-color: #059669; 
+}
+
+#message-box.error {
+    background-color: #EF4444; 
+    color: white;
+    border-color: #DC2626; 
+}
+
+.modal-overlay {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal-content {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease-in-out;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none; 
+}
+
+textarea, input[type="text"], input[type="email"], input[type="number"], input[type="url"], input[type="date"], input[type="tel"] {
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+textarea:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, input[type="url"]:focus, input[type="date"]:focus, input[type="tel"]:focus {
+    border-color: #34D399; 
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); 
+}
+
+
+select {
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem; 
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+select:focus {
+    border-color: #34D399; 
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); 
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #374151;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #34D399; 
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6EE7B7; 
+}
