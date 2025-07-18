@@ -115,8 +115,31 @@ const applicationTypes = {
             { id: 'rules_knowledge', type: 'textarea', label: 'On a scale 1-5, how familar are you with our servers rules and guidelines?' },
             { id: 'ability_to_remain_calm', type: 'textarea', label: 'Please rate your ability to remain calm and professional in a challenging situation: 1-5' },
             { id: 'know_about_you', type: 'textarea', label: 'Is there anything else we should know about you?' },
+        ],
+    },
+    'support': {
+        name: 'Support Application',
+        questions: [
+            { id: 'age', type: 'textarea', label: 'Tell us your age' },
+            { id: 'timezone', type: 'textarea', label: 'What is your timezone?' },
+            { id: 'prior_experience', type: 'textarea', label: 'Do you have any prior experience? (explain if yes)' },
+            { id: 'why_you_join', type: 'textarea', label: 'Why do you want to be a support member for our support server?' },
+            { id: 'knowledge_about_the_bot', type: 'textarea', label: 'On a scale of 1-5, how familar are you with our bot?' },
+            { id: 'what_would_you_do', type: 'textarea', label: 'What would you do if a member was having problems and you arent sure how to help?' },
+            { id: 'know_about_you', type: 'textarea', label: 'Is there anything else we should know about you?' },
         ]
     },
+    'QA': {
+        name: 'QA Application',
+        questions: [
+            { id: 'age', type: 'textarea', label: 'Tell us your age' },
+            { id: 'timezone', type: 'textarea', label: 'What is your timezone?' },
+            { id: 'prior_experience', type: 'textarea', label: 'Do you have any prior with being QA? (Quality Assurance) ' },
+            { id: 'why_you_join', type: 'textarea', label: 'Why are you interested in being a QA member?' },
+            { id: 'knowledge_about_the_bot', type: 'textarea', label: 'On a scale of 1-5, how familar are you with our bot?' },
+            { id: 'know_about_you', type: 'textarea', label: 'Is there anything else we should know about you?' },
+        ]
+    }
 };
 
 
